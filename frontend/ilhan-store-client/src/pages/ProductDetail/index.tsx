@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/hooks'
-import { useFavorites } from '@/hooks'
+import { useFavorites, useRecentlyViewed } from '@/hooks'
 import { fetchProductById } from '@/store/slices/productSlice'
 import { addToCart } from '@/store/slices/cartSlice'
 import { Loader } from '@/components/common/Loader'
@@ -16,6 +16,7 @@ export function ProductDetailPage() {
   const { selected, status } = useAppSelector((state) => state.products)
   const token = useAppSelector((state) => state.auth.token)
   const { isFavorite, toggle } = useFavorites()
+  const { addItem: addRecentlyViewed } = useRecentlyViewed()
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
 
@@ -27,6 +28,18 @@ export function ProductDetailPage() {
     setQuantity(1)
     setAdded(false)
   }, [id])
+
+  useEffect(() => {
+    if (selected) {
+      addRecentlyViewed({
+        id: selected.id,
+        name: selected.name,
+        imageUrl: selected.imageUrl,
+        price: selected.price,
+        discountPrice: selected.discountPrice,
+      })
+    }
+  }, [selected, addRecentlyViewed])
 
   if (status === 'loading' || !selected) {
     return <Loader />

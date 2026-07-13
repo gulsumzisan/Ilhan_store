@@ -29,7 +29,7 @@ export function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const result = await dispatch(
-      register({ ...form, phoneNumber: form.phoneNumber || null }),
+      register({ ...form }),
     )
     if (register.fulfilled.match(result)) {
       const role = result.payload.user.role
@@ -51,7 +51,7 @@ export function RegisterPage() {
         <TextField label="Soyad" name="lastName" value={form.lastName} onChange={update('lastName')} required />
         <TextField label="E-posta" name="email" type="email" value={form.email} onChange={update('email')} required />
         <TextField label="Şifre" name="password" type="password" value={form.password} onChange={update('password')} required />
-        <TextField label="Telefon (opsiyonel)" name="phoneNumber" value={form.phoneNumber} onChange={update('phoneNumber')} />
+        <TextField label="Telefon" name="phoneNumber" type="tel" value={form.phoneNumber} onChange={update('phoneNumber')} required />
 
         {error && (
           <div
