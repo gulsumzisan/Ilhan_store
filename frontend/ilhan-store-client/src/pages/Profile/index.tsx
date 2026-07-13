@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '@/hooks'
 import { useRecentlyViewed } from '@/hooks'
-import { setUser } from '@/store/slices/authSlice'
+import { setUser, logout } from '@/store/slices/authSlice'
 import { userService, orderService } from '@/services'
 import { Loader } from '@/components/common/Loader'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -23,6 +23,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function ProfilePage() {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<Tab>('profile')
 
   // Profil verisi
@@ -30,6 +31,7 @@ export function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -82,11 +84,27 @@ export function ProfilePage() {
       setProfile(updated)
       dispatch(setUser(updated))
       setMessage('Profil güncellendi.')
+      setIsEditing(false)
     } catch (err) {
       setMessage((err as Error).message)
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleCancelEdit = () => {
+    if (profile) {
+      setFirstName(profile.firstName)
+      setLastName(profile.lastName)
+      setPhoneNumber(profile.phoneNumber ?? '')
+    }
+    setIsEditing(false)
+    setMessage(null)
+  }
+
+  const handleLogout = () => {
+    dispatch(logout())
+    navigate('/login')
   }
 
   return (
@@ -131,36 +149,91 @@ export function ProfilePage() {
 
       {/* Profil sekmesi */}
       {activeTab === 'profile' && (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 480 }}>
-          <TextField
-            label="Ad"
-            name="firstName"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            required
-          />
-          <TextField
-            label="Soyad"
-            name="lastName"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-          />
-          <TextField
-            label="Telefon"
-            name="phoneNumber"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-          />
-          {message && (
-            <p style={{ color: message === 'Profil güncellendi.' ? 'var(--color-success)' : 'var(--color-danger)' }}>
-              {message}
-            </p>
+        <div style={{ maxWidth: 480 }}>
+          {!isEditing ? (
+            /* Salt-okunur görünüm */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {[
+                { label: 'Ad', value: profile?.firstName },
+                { label: 'Soyad', value: profile?.lastName },
+                { label: 'E-posta', value: profile?.email },
+                { label: 'Telefon', value: profile?.phoneNumber || '—' },
+              ].map(({ label, value }) => (
+                <div
+                  key={label}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '14px 0',
+                    borderBottom: '1px solid var(--color-border)',
+                    gap: 12,
+                  }}
+                >
+                  <span style={{ width: 100, fontSize: 13, color: 'var(--color-muted)', flexShrink: 0 }}>
+                    {label}
+                  </span>
+                  <span style={{ fontWeight: 600, fontSize: 15 }}>{value}</span>
+                </div>
+              ))}
+              {message && (
+                <p style={{
+                  marginTop: 12,
+                  color: message === 'Profil güncellendi.' ? 'var(--color-success)' : 'var(--color-danger)',
+                }}>
+                  {message}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
+                <Button onClick={() => { setIsEditing(true); setMessage(null) }}>
+                  Düzenle
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={handleLogout}
+                >
+                  Çıkış Yap
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Düzenleme formu */
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <TextField
+                label="Ad"
+                name="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+              <TextField
+                label="Soyad"
+                name="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
+              <TextField
+                label="Telefon"
+                name="phoneNumber"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+              {message && (
+                <p style={{ color: message === 'Profil güncellendi.' ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                  {message}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <Button type="submit" disabled={saving}>
+                  {saving ? 'Kaydediliyor...' : 'Kaydet'}
+                </Button>
+                <Button type="button" variant="secondary" onClick={handleCancelEdit} disabled={saving}>
+                  İptal
+                </Button>
+              </div>
+            </form>
           )}
-          <Button type="submit" disabled={saving}>
-            {saving ? 'Kaydediliyor...' : 'Kaydet'}
-          </Button>
-        </form>
+        </div>
       )}
 
       {/* Siparişlerim sekmesi */}

@@ -49,6 +49,7 @@ export function HomePage() {
           minHeight: 280,
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         {/* decorative circles */}
@@ -62,7 +63,7 @@ export function HomePage() {
           <div style={circleStyle(160, 180, 'auto', 'rgba(255,255,255,0.04)', undefined, undefined, -40)} />
         </div>
 
-        <div style={{ position: 'relative', maxWidth: 560 }}>
+        <div style={{ position: 'relative', maxWidth: 560, textAlign: 'center' }}>
           <span
             style={{
               display: 'inline-block',
@@ -94,7 +95,7 @@ export function HomePage() {
             En yeni kıyafet koleksiyonlarını keşfedin.<br />
             Trendleri takip edin, tarzınızı bulun.
           </p>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
             <Link to="/products">
               <Button variant="secondary">Alışverişe Başla →</Button>
             </Link>
