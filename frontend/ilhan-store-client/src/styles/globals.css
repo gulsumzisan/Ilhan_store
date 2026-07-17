@@ -1,11 +1,11 @@
 :root {
-  --color-bg: #f7f7f9;
+  --color-bg: #fdf5f7;
   --color-surface: #ffffff;
-  --color-text: #1a1a1a;
-  --color-muted: #6b7280;
-  --color-primary: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-border: #e5e7eb;
+  --color-text: #2d1a20;
+  --color-muted: #8c6370;
+  --color-primary: #c4687e;
+  --color-primary-dark: #a8536a;
+  --color-border: #f0d8df;
   --color-danger: #dc2626;
   --color-success: #16a34a;
   --color-warning: #f59e0b;
@@ -55,7 +55,7 @@
 }
 .badge-danger  { background: #fee2e2; color: #b91c1c; }
 .badge-success { background: #dcfce7; color: #15803d; }
-.badge-primary { background: #dbeafe; color: #1d4ed8; }
+.badge-primary { background: #fce4ec; color: #a8536a; }
 .badge-muted   { background: #f3f4f6; color: #374151; }
 
 * {

@@ -9,7 +9,7 @@ export function AuthLayout() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%)',
+        background: 'linear-gradient(135deg, #7a1f3d 0%, #c4687e 60%, #e09aaa 100%)',
         padding: 16,
       }}
     >

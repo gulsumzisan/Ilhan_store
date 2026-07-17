@@ -19,8 +19,8 @@ interface Stats {
 }
 
 const STAT_CARDS = [
-  { key: 'products' as const, label: 'Toplam Ürün', icon: '👕', color: '#2563eb', bg: '#dbeafe' },
-  { key: 'categories' as const, label: 'Kategori', icon: '🗂️', color: '#7c3aed', bg: '#ede9fe' },
+  { key: 'products' as const, label: 'Toplam Ürün', icon: '👕', color: '#c4687e', bg: '#fce4ec' },
+  { key: 'categories' as const, label: 'Kategori', icon: '🗂️', color: '#9b5a8c', bg: '#f3e8f9' },
   { key: 'orders' as const, label: 'Sipariş', icon: '📦', color: '#d97706', bg: '#fef3c7' },
   { key: 'users' as const, label: 'Kullanıcı', icon: '👥', color: '#16a34a', bg: '#dcfce7' },
 ]

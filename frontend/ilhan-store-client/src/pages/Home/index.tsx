@@ -42,7 +42,7 @@ export function HomePage() {
         style={{
           position: 'relative',
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #7c3aed 100%)',
+          background: 'linear-gradient(135deg, #7a1f3d 0%, #c4687e 50%, #d4909f 100%)',
           color: '#fff',
           borderRadius: 'var(--radius-lg)',
           padding: '64px 40px',
