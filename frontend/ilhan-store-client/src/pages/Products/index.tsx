@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks'
 import { fetchProducts } from '@/store/slices/productSlice'
 import { fetchCategories } from '@/store/slices/categorySlice'
 import { addToCart } from '@/store/slices/cartSlice'
+import { productService } from '@/services'
 import { ProductCard } from '@/components/product/ProductCard'
 import { Loader } from '@/components/common/Loader'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -19,17 +20,48 @@ export function ProductsPage() {
   const categoryId = searchParams.get('categoryId')
   const [term, setTerm] = useState(searchParams.get('searchTerm') ?? '')
 
+  // Üst kategori seçilince alt kategorilerin ürünlerini de çekmek için yerel state
+  const [localProducts, setLocalProducts] = useState<Product[] | null>(null)
+  const [localLoading, setLocalLoading] = useState(false)
+
   useEffect(() => {
     dispatch(fetchCategories())
   }, [dispatch])
 
   useEffect(() => {
+    const numericId = categoryId ? Number(categoryId) : null
+    const searchTerm = searchParams.get('searchTerm') ?? undefined
+
+    if (numericId && categories.length > 0) {
+      const subCategories = categories.filter((c) => c.parentCategoryId === numericId)
+
+      if (subCategories.length > 0) {
+        // Üst kategori: ürünleri hem ana hem de alt kategorilerden getir
+        const allIds = [numericId, ...subCategories.map((s) => s.id)]
+        setLocalLoading(true)
+        Promise.all(
+          allIds.map((id) =>
+            productService.getAll({ categoryId: id, ...(searchTerm ? { searchTerm } : {}) }),
+          ),
+        )
+          .then((results) => {
+            const map = new Map<number, Product>()
+            results.flat().forEach((p) => map.set(p.id, p))
+            setLocalProducts(Array.from(map.values()))
+          })
+          .catch(() => setLocalProducts([]))
+          .finally(() => setLocalLoading(false))
+        return
+      }
+    }
+
+    // Alt kategori veya kategori seçilmemişse Redux akışını kullan
+    setLocalProducts(null)
     const params: ProductSearchParams = {}
-    if (categoryId) params.categoryId = Number(categoryId)
-    const search = searchParams.get('searchTerm')
-    if (search) params.searchTerm = search
+    if (numericId) params.categoryId = numericId
+    if (searchTerm) params.searchTerm = searchTerm
     dispatch(fetchProducts(Object.keys(params).length ? params : undefined))
-  }, [dispatch, categoryId, searchParams])
+  }, [dispatch, categoryId, searchParams, categories])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +74,17 @@ export function ProductsPage() {
   const handleAddToCart = (product: Product) => {
     dispatch(addToCart({ productId: product.id, quantity: 1 }))
   }
+
+  const displayProducts = localProducts ?? products
+  const isLoading = localLoading || (!localProducts && status === 'loading')
+
+  // Seçili kategorinin adını bul (üst + alt dahil)
+  const selectedCategory = categoryId
+    ? categories.find((c) => c.id === Number(categoryId))
+    : null
+  const subCount = selectedCategory
+    ? categories.filter((c) => c.parentCategoryId === selectedCategory.id).length
+    : 0
 
   return (
     <div>
@@ -78,19 +121,37 @@ export function ProductsPage() {
           <option value="">Tüm Kategoriler</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {c.parentCategoryId ? `  ↳ ${c.name}` : c.name}
             </option>
           ))}
         </select>
       </div>
 
-      {status === 'loading' ? (
+      {/* Üst kategori seçilince bilgi mesajı */}
+      {selectedCategory && subCount > 0 && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: '8px 14px',
+            background: 'var(--color-bg)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius)',
+            fontSize: 13,
+            color: 'var(--color-muted)',
+          }}
+        >
+          <strong style={{ color: 'var(--color-text)' }}>{selectedCategory.name}</strong> kategorisi
+          ve {subCount} alt kategorisinin ürünleri gösteriliyor.
+        </div>
+      )}
+
+      {isLoading ? (
         <Loader />
-      ) : products.length === 0 ? (
+      ) : displayProducts.length === 0 ? (
         <EmptyState title="Ürün bulunamadı" description="Farklı bir arama deneyin." />
       ) : (
         <div className="grid grid-products">
-          {products.map((product) => (
+          {displayProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}

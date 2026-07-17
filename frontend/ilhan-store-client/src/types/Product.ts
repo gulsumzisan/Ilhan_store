@@ -29,6 +29,8 @@ export interface Product {
   brand?: string | null
   color?: string | null
   size: ClothingSize
+  /** Virgülle ayrılmış beden değerleri — örn. "0,1,3" */
+  sizes?: string | null
   imageUrl?: string | null
   categoryId: number
   categoryName?: string | null
@@ -43,6 +45,8 @@ export interface CreateProductRequest {
   brand?: string | null
   color?: string | null
   size: ClothingSize
+  /** Virgülle ayrılmış beden değerleri — örn. "0,1,3" */
+  sizes?: string | null
   imageUrl?: string | null
   categoryId: number
 }

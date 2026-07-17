@@ -12,6 +12,8 @@ public class Product : BaseEntity
     public string? Brand { get; set; }
     public string? Color { get; set; }
     public ClothingSize Size { get; set; }
+    /// <summary>Virgülle ayrılmış beden değerleri — örn. "0,1,3" (XS,S,L)</summary>
+    public string? Sizes { get; set; }
     public string? ImageUrl { get; set; }
     public string? ImageUrls { get; set; }
     public int CategoryId { get; set; }
