@@ -33,7 +33,7 @@ export function ProductsPage() {
     const searchTerm = searchParams.get('searchTerm') ?? undefined
 
     if (numericId && categories.length > 0) {
-      const subCategories = categories.filter((c) => c.parentCategoryId === numericId)
+      const subCategories = categories.filter((c) => c.parentCategoryIds.includes(numericId))
 
       if (subCategories.length > 0) {
         // Üst kategori: ürünleri hem ana hem de alt kategorilerden getir
@@ -83,7 +83,7 @@ export function ProductsPage() {
     ? categories.find((c) => c.id === Number(categoryId))
     : null
   const subCount = selectedCategory
-    ? categories.filter((c) => c.parentCategoryId === selectedCategory.id).length
+    ? categories.filter((c) => c.parentCategoryIds.includes(selectedCategory.id)).length
     : 0
 
   return (
@@ -121,7 +121,7 @@ export function ProductsPage() {
           <option value="">Tüm Kategoriler</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.parentCategoryId ? `  ↳ ${c.name}` : c.name}
+              {c.parentCategoryIds.length > 0 ? `  ↳ ${c.name}` : c.name}
             </option>
           ))}
         </select>

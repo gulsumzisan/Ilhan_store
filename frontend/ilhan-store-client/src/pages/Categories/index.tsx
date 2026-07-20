@@ -22,7 +22,7 @@ export function CategoriesPage() {
         <EmptyState title="Kategori bulunamadı" />
       ) : (
         <div className="grid grid-products">
-          {items.map((category) => (
+          {items.filter((c) => c.isMainCategory).map((category) => (
             <CategoryCard key={category.id} category={category} />
           ))}
         </div>

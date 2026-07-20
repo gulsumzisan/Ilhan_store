@@ -364,6 +364,7 @@ export function Navbar() {
                 minWidth: 260, background: 'var(--color-surface)',
                 border: '1px solid var(--color-border)', borderRadius: '0 0 var(--radius) var(--radius)',
                 boxShadow: 'var(--shadow-md)', overflow: 'hidden', zIndex: 200,
+                animation: 'slideDown 0.22s ease both',
               }}>
                 {rootCategories.length === 0 ? (
                   <div style={{ padding: '12px 16px', color: 'var(--color-muted)', fontSize: 14 }}>Kategori bulunamadı</div>
@@ -391,7 +392,7 @@ export function Navbar() {
                           )}
                         </div>
                         {isExpanded && subs.length > 0 && (
-                          <div style={{ background: 'var(--color-bg)' }}>
+                          <div style={{ background: 'var(--color-bg)', animation: 'slideDown 0.18s ease both' }}>
                             {subs.map((sub) => (
                               <Link key={sub.id} to={`/products?categoryId=${sub.id}`} onClick={() => setMenuOpen(false)}
                                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px 9px 28px', textDecoration: 'none', color: 'var(--color-muted)', fontSize: 13, fontWeight: 500, borderBottom: '1px solid var(--color-border)', transition: 'background 0.12s, color 0.12s' }}
