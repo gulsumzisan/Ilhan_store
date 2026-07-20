@@ -11,6 +11,7 @@ public class IlhanStoreContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<CategoryRelationship> CategoryRelationships => Set<CategoryRelationship>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
@@ -35,9 +36,18 @@ public class IlhanStoreContext : DbContext
         modelBuilder.Entity<Category>(entity =>
         {
             entity.Property(c => c.Name).HasMaxLength(100);
-            entity.HasOne(c => c.ParentCategory)
-                .WithMany(c => c.SubCategories)
-                .HasForeignKey(c => c.ParentCategoryId)
+        });
+
+        modelBuilder.Entity<CategoryRelationship>(entity =>
+        {
+            entity.HasKey(cr => new { cr.ParentCategoryId, cr.ChildCategoryId });
+            entity.HasOne(cr => cr.ParentCategory)
+                .WithMany(c => c.ChildRelationships)
+                .HasForeignKey(cr => cr.ParentCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(cr => cr.ChildCategory)
+                .WithMany(c => c.ParentRelationships)
+                .HasForeignKey(cr => cr.ChildCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

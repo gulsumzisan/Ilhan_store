@@ -34,19 +34,18 @@ public class CategoryManager : ICategoryService
 
     public async Task<ApiResponse<CategoryDto>> CreateAsync(CreateCategoryDto dto)
     {
-        dto.ParentCategoryId = NormalizeParentCategoryId(dto.ParentCategoryId);
-
-        if (dto.ParentCategoryId.HasValue)
-        {
-            var parentExists = await _categoryRepository.ExistsAsync(c =>
-                c.Id == dto.ParentCategoryId.Value && c.IsActive);
-            if (!parentExists)
-                return ApiResponse<CategoryDto>.Fail("Üst kategori bulunamadı.");
-        }
+        var validParentIds = await ValidateAndFilterParentIds(dto.ParentCategoryIds, excludeId: null);
+        if (validParentIds is null)
+            return ApiResponse<CategoryDto>.Fail("Belirtilen üst kategorilerden biri bulunamadı.");
 
         var category = _mapper.Map<Entity.Entities.Category>(dto);
         await _categoryRepository.AddAsync(category);
-        return ApiResponse<CategoryDto>.Ok(_mapper.Map<CategoryDto>(category), "Kategori oluşturuldu.");
+
+        if (validParentIds.Count > 0)
+            await _categoryRepository.SyncParentRelationshipsAsync(category.Id, validParentIds);
+
+        var created = await _categoryRepository.GetWithRelationshipsAsync(category.Id);
+        return ApiResponse<CategoryDto>.Ok(_mapper.Map<CategoryDto>(created!), "Kategori oluşturuldu.");
     }
 
     public async Task<ApiResponse<CategoryDto>> UpdateAsync(int id, UpdateCategoryDto dto)
@@ -55,24 +54,17 @@ public class CategoryManager : ICategoryService
         if (category is null)
             return ApiResponse<CategoryDto>.Fail("Kategori bulunamadı.");
 
-        dto.ParentCategoryId = NormalizeParentCategoryId(dto.ParentCategoryId);
-
-        if (dto.ParentCategoryId.HasValue)
-        {
-            if (dto.ParentCategoryId.Value == id)
-                return ApiResponse<CategoryDto>.Fail("Kategori kendi üst kategorisi olamaz.");
-
-            var parentExists = await _categoryRepository.ExistsAsync(c =>
-                c.Id == dto.ParentCategoryId.Value && c.IsActive);
-            if (!parentExists)
-                return ApiResponse<CategoryDto>.Fail("Üst kategori bulunamadı.");
-        }
+        var validParentIds = await ValidateAndFilterParentIds(dto.ParentCategoryIds, excludeId: id);
+        if (validParentIds is null)
+            return ApiResponse<CategoryDto>.Fail("Belirtilen üst kategorilerden biri bulunamadı.");
 
         _mapper.Map(dto, category);
         category.UpdatedAt = DateTime.UtcNow;
         await _categoryRepository.UpdateAsync(category);
+        await _categoryRepository.SyncParentRelationshipsAsync(id, validParentIds);
 
-        return ApiResponse<CategoryDto>.Ok(_mapper.Map<CategoryDto>(category), "Kategori güncellendi.");
+        var updated = await _categoryRepository.GetWithRelationshipsAsync(id);
+        return ApiResponse<CategoryDto>.Ok(_mapper.Map<CategoryDto>(updated!), "Kategori güncellendi.");
     }
 
     public async Task<ApiResponse<bool>> DeleteAsync(int id)
@@ -88,6 +80,20 @@ public class CategoryManager : ICategoryService
         return ApiResponse<bool>.Ok(true, "Kategori silindi.");
     }
 
-    private static int? NormalizeParentCategoryId(int? parentCategoryId) =>
-        parentCategoryId is null or <= 0 ? null : parentCategoryId;
+    private async Task<List<int>?> ValidateAndFilterParentIds(List<int> parentIds, int? excludeId)
+    {
+        var filtered = parentIds
+            .Where(pid => pid > 0 && pid != excludeId)
+            .Distinct()
+            .ToList();
+
+        foreach (var pid in filtered)
+        {
+            var exists = await _categoryRepository.ExistsAsync(c => c.Id == pid && c.IsActive);
+            if (!exists)
+                return null;
+        }
+
+        return filtered;
+    }
 }

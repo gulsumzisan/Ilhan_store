@@ -50,9 +50,9 @@ export function HeroSlider() {
         width: '100%',
         borderRadius: 'var(--radius-lg)',
         overflow: 'hidden',
-        aspectRatio: '16 / 5',
-        minHeight: 260,
-        maxHeight: 480,
+        aspectRatio: '16 / 7',
+        minHeight: 340,
+        maxHeight: 600,
         background: '#111',
         userSelect: 'none',
       }}

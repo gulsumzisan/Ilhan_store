@@ -8,6 +8,7 @@ import { ProductCard } from '@/components/product/ProductCard'
 import { CategoryCard } from '@/components/category/CategoryCard'
 import { Loader } from '@/components/common/Loader'
 import { HeroSlider } from '@/components/common/HeroSlider'
+import { FlashSale } from '@/components/common/FlashSale'
 import type { Product } from '@/types'
 
 export function HomePage() {
@@ -31,6 +32,14 @@ export function HomePage() {
 
       {/* ── Hero Slider ── */}
       <HeroSlider />
+
+      {/* ── Flaş İndirimler ── */}
+      {status !== 'loading' && (
+        <FlashSale
+          products={products}
+          onAddToCart={token ? handleAddToCart : undefined}
+        />
+      )}
 
       {/* ── Categories ── */}
       {categories.length > 0 && (

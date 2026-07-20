@@ -17,13 +17,18 @@ public class CreateCategoryDtoSchemaFilter : ISchemaFilter
             ["name"] = new OpenApiString("Elbise"),
             ["description"] = new OpenApiString("Elbise kategorisi"),
             ["imageUrl"] = new OpenApiNull(),
-            ["parentCategoryId"] = new OpenApiNull()
+            ["isMainCategory"] = new OpenApiBoolean(true),
+            ["parentCategoryIds"] = new OpenApiArray()
         };
 
-        if (schema.Properties.TryGetValue("parentCategoryId", out var parentProperty))
+        if (schema.Properties.TryGetValue("parentCategoryIds", out var parentProperty))
         {
-            parentProperty.Nullable = true;
-            parentProperty.Description = "Opsiyonel. Ana kategori için null bırakın.";
+            parentProperty.Description = "Opsiyonel. Birden fazla üst kategori atanabilir. Ana kategori için boş bırakın.";
+        }
+
+        if (schema.Properties.TryGetValue("isMainCategory", out var mainProperty))
+        {
+            mainProperty.Description = "True ise kategori üst menüde görünür.";
         }
     }
 }

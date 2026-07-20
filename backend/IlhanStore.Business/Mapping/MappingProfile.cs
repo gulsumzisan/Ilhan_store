@@ -23,9 +23,17 @@ public class MappingProfile : Profile
         CreateMap<UpdateProductDto, Product>();
 
         CreateMap<Category, CategoryDto>()
-            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0));
-        CreateMap<CreateCategoryDto, Category>();
-        CreateMap<UpdateCategoryDto, Category>();
+            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))
+            .ForMember(dest => dest.ParentCategoryIds, opt => opt.MapFrom(src =>
+                src.ParentRelationships != null
+                    ? src.ParentRelationships.Select(r => r.ParentCategoryId).ToList()
+                    : new List<int>()));
+        CreateMap<CreateCategoryDto, Category>()
+            .ForMember(dest => dest.ParentRelationships, opt => opt.Ignore())
+            .ForMember(dest => dest.ChildRelationships, opt => opt.Ignore());
+        CreateMap<UpdateCategoryDto, Category>()
+            .ForMember(dest => dest.ParentRelationships, opt => opt.Ignore())
+            .ForMember(dest => dest.ChildRelationships, opt => opt.Ignore());
 
         CreateMap<Cart, CartDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.CartItems))
