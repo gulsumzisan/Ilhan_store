@@ -53,7 +53,7 @@ const EMPTY: CreateProductRequest = {
   sizes: null,
   size: ClothingSize.M,
   imageUrl: null,
-  categoryId: 0,
+  categoryIds: [],
 }
 
 /** Virgüllü beden stringini dizi olarak ayrıştırır */
@@ -85,7 +85,7 @@ export function ProductFormModal({
           sizes: product.sizes ?? null,
           size: product.size,
           imageUrl: product.imageUrl ?? null,
-          categoryId: product.categoryId,
+          categoryIds: product.categoryIds?.length ? product.categoryIds : (product.categoryId ? [product.categoryId] : []),
         }
       : EMPTY,
   )
@@ -128,10 +128,20 @@ export function ProductFormModal({
     )
   }
 
+  const toggleCategory = (id: number) => {
+    setForm((prev) => {
+      const ids = prev.categoryIds ?? []
+      return {
+        ...prev,
+        categoryIds: ids.includes(id) ? ids.filter((c) => c !== id) : [...ids, id],
+      }
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.categoryId) {
-      setError('Lütfen bir kategori seçin.')
+    if (!form.categoryIds || form.categoryIds.length === 0) {
+      setError('Lütfen en az bir kategori seçin.')
       return
     }
     const price = parseDecimal(priceStr)
@@ -279,39 +289,45 @@ export function ProductFormModal({
               required
             />
 
-            {/* Kategori seçimi */}
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontSize: 14, fontWeight: 600 }}>Kategori *</span>
-              <select
-                value={form.categoryId || ''}
-                onChange={(e) => set('categoryId', Number(e.target.value))}
-                required
-                style={selectStyle}
-              >
-                <option value="">Seçin...</option>
+            {/* Kategori seçimi — çoklu */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, gridColumn: '1 / -1' }}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Kategori * <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-text-muted)' }}>(Birden fazla seçilebilir)</span></span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {categories
-                  .filter((c) => !c.parentCategoryId)
+                  .filter((c) => c.isMainCategory)
                   .map((root) => {
-                    const subs = categories.filter(
-                      (c) => c.parentCategoryId === root.id,
-                    )
-                    return subs.length > 0 ? (
-                      <optgroup key={root.id} label={root.name}>
-                        <option value={root.id}>{root.name} (genel)</option>
+                    const subs = categories.filter((c) => !c.isMainCategory && c.parentCategoryIds?.includes(root.id))
+                    return (
+                      <div key={root.id} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {/* Ana kategori */}
+                        <CategoryChip
+                          label={root.name}
+                          checked={(form.categoryIds ?? []).includes(root.id)}
+                          onToggle={() => toggleCategory(root.id)}
+                          isMain
+                        />
+                        {/* Alt kategoriler */}
                         {subs.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
+                          <CategoryChip
+                            key={s.id}
+                            label={`↳ ${s.name}`}
+                            checked={(form.categoryIds ?? []).includes(s.id)}
+                            onToggle={() => toggleCategory(s.id)}
+                          />
                         ))}
-                      </optgroup>
-                    ) : (
-                      <option key={root.id} value={root.id}>
-                        {root.name}
-                      </option>
+                      </div>
                     )
                   })}
-              </select>
-            </label>
+              </div>
+              {(form.categoryIds ?? []).length > 0 && (
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--color-text-muted)' }}>
+                  Seçili: {(form.categoryIds ?? [])
+                    .map((id) => categories.find((c) => c.id === id)?.name)
+                    .filter(Boolean)
+                    .join(', ')}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Renk seçici */}
@@ -452,12 +468,39 @@ export function ProductFormModal({
   )
 }
 
-const selectStyle: React.CSSProperties = {
-  padding: '10px 12px',
-  borderRadius: 'var(--radius)',
-  border: '1px solid var(--color-border)',
-  fontSize: 14,
-  background: 'var(--color-surface)',
+function CategoryChip({
+  label,
+  checked,
+  onToggle,
+  isMain,
+}: {
+  label: string
+  checked: boolean
+  onToggle: () => void
+  isMain?: boolean
+}) {
+  return (
+    <label
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: isMain ? '6px 14px' : '4px 10px',
+        borderRadius: 'var(--radius)',
+        border: `2px solid ${checked ? 'var(--color-primary)' : 'var(--color-border)'}`,
+        background: checked ? 'var(--color-primary)' : 'transparent',
+        color: checked ? '#fff' : 'inherit',
+        cursor: 'pointer',
+        fontWeight: isMain ? 600 : 400,
+        fontSize: isMain ? 14 : 13,
+        transition: 'all 0.15s',
+        userSelect: 'none',
+      }}
+    >
+      <input type="checkbox" checked={checked} onChange={onToggle} style={{ display: 'none' }} />
+      {label}
+    </label>
+  )
 }
 
 const fieldsetStyle: React.CSSProperties = {
