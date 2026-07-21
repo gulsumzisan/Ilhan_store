@@ -18,6 +18,7 @@ public class ProductDto
     public string? ImageUrl { get; set; }
     public int CategoryId { get; set; }
     public string? CategoryName { get; set; }
+    public List<int> CategoryIds { get; set; } = [];
 }
 
 public class CreateProductDto
@@ -33,7 +34,7 @@ public class CreateProductDto
     /// <summary>Virgülle ayrılmış beden değerleri — örn. "0,1,3"</summary>
     public string? Sizes { get; set; }
     public string? ImageUrl { get; set; }
-    public int CategoryId { get; set; }
+    public List<int> CategoryIds { get; set; } = [];
 }
 
 public class UpdateProductDto : CreateProductDto

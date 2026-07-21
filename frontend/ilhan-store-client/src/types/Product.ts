@@ -34,6 +34,7 @@ export interface Product {
   imageUrl?: string | null
   categoryId: number
   categoryName?: string | null
+  categoryIds: number[]
 }
 
 export interface CreateProductRequest {
@@ -48,7 +49,7 @@ export interface CreateProductRequest {
   /** Virgülle ayrılmış beden değerleri — örn. "0,1,3" */
   sizes?: string | null
   imageUrl?: string | null
-  categoryId: number
+  categoryIds: number[]
 }
 
 export type UpdateProductRequest = CreateProductRequest

@@ -44,6 +44,27 @@ public class EfProductRepository : EfGenericRepository<Product>, IProductReposit
     public async Task<Product?> GetWithDetailsAsync(int id) =>
         await DbSet
             .Include(p => p.Category)
+            .Include(p => p.ProductCategories)
             .Include(p => p.Reviews)
             .FirstOrDefaultAsync(p => p.Id == id);
+
+    public async Task SyncCategoriesAsync(int productId, IEnumerable<int> categoryIds)
+    {
+        var existing = await Context.ProductCategories
+            .Where(pc => pc.ProductId == productId)
+            .ToListAsync();
+
+        Context.ProductCategories.RemoveRange(existing);
+
+        foreach (var categoryId in categoryIds.Distinct())
+        {
+            Context.ProductCategories.Add(new ProductCategory
+            {
+                ProductId = productId,
+                CategoryId = categoryId
+            });
+        }
+
+        await Context.SaveChangesAsync();
+    }
 }

@@ -18,9 +18,17 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
 
         CreateMap<Product, ProductDto>()
-            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
-        CreateMap<CreateProductDto, Product>();
-        CreateMap<UpdateProductDto, Product>();
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
+            .ForMember(dest => dest.CategoryIds, opt => opt.MapFrom(src =>
+                src.ProductCategories != null && src.ProductCategories.Any()
+                    ? src.ProductCategories.Select(pc => pc.CategoryId).ToList()
+                    : new List<int> { src.CategoryId }));
+        CreateMap<CreateProductDto, Product>()
+            .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryIds.Any() ? src.CategoryIds.First() : 0))
+            .ForMember(dest => dest.ProductCategories, opt => opt.Ignore());
+        CreateMap<UpdateProductDto, Product>()
+            .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryIds.Any() ? src.CategoryIds.First() : 0))
+            .ForMember(dest => dest.ProductCategories, opt => opt.Ignore());
 
         CreateMap<Category, CategoryDto>()
             .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))

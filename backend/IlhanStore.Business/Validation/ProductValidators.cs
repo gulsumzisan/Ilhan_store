@@ -11,6 +11,7 @@ public class CreateProductDtoValidator : AbstractValidator<CreateProductDto>
         RuleFor(x => x.Description).NotEmpty();
         RuleFor(x => x.Price).GreaterThan(0);
         RuleFor(x => x.StockQuantity).GreaterThanOrEqualTo(0);
-        RuleFor(x => x.CategoryId).GreaterThan(0);
+        RuleFor(x => x.CategoryIds).NotEmpty().WithMessage("En az bir kategori seçilmelidir.");
+        RuleForEach(x => x.CategoryIds).GreaterThan(0);
     }
 }

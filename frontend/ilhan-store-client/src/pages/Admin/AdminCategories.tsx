@@ -155,6 +155,7 @@ export function AdminCategoriesPage() {
   const [editIsMainCategory, setEditIsMainCategory] = useState(true)
   const [editParentIds, setEditParentIds] = useState<number[]>([])
   const [saving, setSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
 
   // Açık/kapalı üst kategoriler
   const [expandedParents, setExpandedParents] = useState<Set<number>>(new Set())
@@ -211,15 +212,21 @@ export function AdminCategoriesPage() {
     setEditDescription(cat.description ?? '')
     setEditImageUrl(cat.imageUrl ?? '')
     setEditIsMainCategory(cat.isMainCategory)
-    setEditParentIds(cat.parentCategoryIds ?? [])
+    // Sadece hâlâ aktif olan parent ID'leri al (silinmiş kategori referanslarını temizle)
+    const activeParentIds = (cat.parentCategoryIds ?? []).filter((id) =>
+      categories.some((c) => c.id === id)
+    )
+    setEditParentIds(activeParentIds)
+    setEditError(null)
   }
 
-  const cancelEdit = () => setEditingId(null)
+  const cancelEdit = () => { setEditingId(null); setEditError(null) }
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (editingId === null) return
     setSaving(true)
+    setEditError(null)
     try {
       await categoryService.update(editingId, {
         name: editName,
@@ -230,6 +237,9 @@ export function AdminCategoriesPage() {
       })
       setEditingId(null)
       load()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Kayıt sırasında bir hata oluştu.'
+      setEditError(msg)
     } finally {
       setSaving(false)
     }
@@ -352,6 +362,19 @@ export function AdminCategoriesPage() {
                 }}
               />
               <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>Önizleme</span>
+            </div>
+          )}
+
+          {editError && (
+            <div style={{
+              padding: '8px 12px',
+              background: '#fee2e2',
+              border: '1px solid #fca5a5',
+              borderRadius: 'var(--radius)',
+              color: '#b91c1c',
+              fontSize: 13,
+            }}>
+              {editError}
             </div>
           )}
 

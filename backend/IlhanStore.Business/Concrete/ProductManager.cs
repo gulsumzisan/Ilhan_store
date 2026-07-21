@@ -48,11 +48,15 @@ public class ProductManager : IProductService
 
     public async Task<ApiResponse<ProductDto>> CreateAsync(CreateProductDto dto)
     {
-        if (!await _categoryRepository.ExistsAsync(c => c.Id == dto.CategoryId))
-            return ApiResponse<ProductDto>.Fail("Kategori bulunamadı.");
+        foreach (var catId in dto.CategoryIds.Distinct())
+        {
+            if (!await _categoryRepository.ExistsAsync(c => c.Id == catId))
+                return ApiResponse<ProductDto>.Fail($"Kategori (Id: {catId}) bulunamadı.");
+        }
 
         var product = _mapper.Map<Entity.Entities.Product>(dto);
         await _productRepository.AddAsync(product);
+        await _productRepository.SyncCategoriesAsync(product.Id, dto.CategoryIds);
 
         var created = await _productRepository.GetWithDetailsAsync(product.Id);
         return ApiResponse<ProductDto>.Ok(_mapper.Map<ProductDto>(created!), "Ürün oluşturuldu.");
@@ -64,9 +68,16 @@ public class ProductManager : IProductService
         if (product is null)
             return ApiResponse<ProductDto>.Fail("Ürün bulunamadı.");
 
+        foreach (var catId in dto.CategoryIds.Distinct())
+        {
+            if (!await _categoryRepository.ExistsAsync(c => c.Id == catId))
+                return ApiResponse<ProductDto>.Fail($"Kategori (Id: {catId}) bulunamadı.");
+        }
+
         _mapper.Map(dto, product);
         product.UpdatedAt = DateTime.UtcNow;
         await _productRepository.UpdateAsync(product);
+        await _productRepository.SyncCategoriesAsync(id, dto.CategoryIds);
 
         var updated = await _productRepository.GetWithDetailsAsync(id);
         return ApiResponse<ProductDto>.Ok(_mapper.Map<ProductDto>(updated!), "Ürün güncellendi.");
